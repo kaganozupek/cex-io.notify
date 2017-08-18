@@ -133,14 +133,14 @@ var forecast = function () {
                         //if (askForecast > lastForecastAsk  /*lastAskPrice*/) {
                         var promiseResultAsk = util.deepPromise(smoothedAsk, resource.forecast_count);
 
-                        buyNow(resource, lastAskPrice);
+                   
                         if (promiseResultAsk) {
 
 
                             if ((parseFloat(resource.bid) - parseFloat(resource.buy_margin)) > lastAskPrice) {
 
                                 suitableForAsk = true;
-                            //    buyNow(resource, lastAskPrice);
+                                buyNow(resource, lastAskPrice);
                             } else {
                                 if (debug) {
                                     console.log(colors.buy(resource.owner + ' Deep True / Margin False '));
@@ -186,7 +186,7 @@ var forecast = function () {
 
                         //if (parseFloat(bidForecast) < lastForecastBid /*lastBidPrices[lastBidPrices.length - 1][1]*/) {
                         var promiseResultBid = util.peakPromise(smoothedBid, resource.forecast_count);
-                        sellNow(resource,lastBidPrice);
+                        
                         if (promiseResultBid) {
 
                             if ((parseFloat(resource.ask) + parseFloat(resource.sell_margin) ) < lastBidPrice) {
@@ -293,7 +293,7 @@ var buyNow = function (resource, ask) {
 
 var sellNow = function (resource, bid) {
 
-    
+
 
     client.api.buy_sell('sell', resource.amount, 'ETH/USD', function (result) {
         if (result.error !== undefined) {
