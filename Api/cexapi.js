@@ -8,7 +8,8 @@ var _api_secret;
 var _nonce = '';
 var _https = require('https');
 var _crypto = require('crypto');
-
+var config = require('../config.js')
+var botclient = require('../App/botclient.js')
 function create(username, api_key, api_secret) //Set variable
 {
     _username = username;
@@ -29,7 +30,8 @@ function __signature() //Generate signature
 
 function __nonce() //Get timestamp as nonce
 {
-    _nonce = Math.round(new Date().getTime() / 100000) + Math.floor(Math.random()*100);
+    _nonce = Math.round(new Date().getTime());
+
 }
 
 function __post(url, param, callback) //Send post request via requstify
@@ -91,7 +93,40 @@ function api_call(method, param, is_private, couple, callback) //Api call
         }
     }
 
+    if(config.botmode && botApi(url,param,callback))
+    {
+        return
+    }
     __post(url,param, callback)
+}
+
+
+function botApi(url,param,callback)
+{
+
+
+    if(url == "/api/balance/")
+    {
+  
+        botclient.getAccountDetails(function(balance){
+                 callback(balance)
+
+        })
+        return true
+    }
+
+    else if(url == "/api/place_order/ETH/USD/")
+    {
+        
+        if(param.type == "buy")
+            botclient.buyEthereum(param.amount,callback)
+        else
+            botclient.sellEthereum(param.amount,callback)
+        return true
+    }
+
+
+    return false
 }
 
 function ticker(couple,callback)
@@ -140,11 +175,12 @@ function place_order(type, amount, price, couple, callback)
 
 function buy_sell(type, amount, couple, callback)
 {
-    param = new Object();
+param = new Object();
     param.type = type;
     param.order_type = 'market';
     param.amount = amount;
     api_call('place_order', param, 1, couple, callback)
+
 }
 
 

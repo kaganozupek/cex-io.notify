@@ -5,7 +5,7 @@
 var colors = require('colors/safe');
 var https = require("https");
 var util = require('../Utils/TradeUtil.js');
-
+var botclient = require('./botclient.js')
 colors.setTheme({
     silly: 'rainbow',
     buy: 'cyan',
@@ -38,7 +38,7 @@ var forecast = function () {
 
                 var lastAskPrice = param.ask,
                 lastBidPrice = param.bid;
-
+                botclient.setLastPrices(param.ask,param.bid)
 
 
                 //TODO: get the latest price on market
@@ -51,8 +51,9 @@ var forecast = function () {
                 }
 
 
-                for (r in resources) {
 
+                for (r in resources) {
+     
                     var resource = resources[r];
 
                     var lastAskPrices = [], lastBidPrices = [];
@@ -106,10 +107,10 @@ var forecast = function () {
 
                     if (debug)
                         console.log(colors.debug(resource.owner + ' processed in the last ') + colors.red(Math.floor(( (smoothedAsk.data[smoothedAsk.data.length - 1][0] - smoothedAsk.data[0][0]) / 1000) / 60) + ' munites.') + colors.debug(' Mean count: ') + colors.red(smoothedAsk.data.length))
-
+                   
                     var suitableForAsk = false;
                     if (resource.ask === null) {
-
+                        
 
                         var lastForecastAsk = smoothedAsk.data[smoothedAsk.data.length - 1][1];
 
@@ -132,6 +133,7 @@ var forecast = function () {
                         //if (askForecast > lastForecastAsk  /*lastAskPrice*/) {
                         var promiseResultAsk = util.deepPromise(smoothedAsk, resource.forecast_count);
 
+                        
                         if (promiseResultAsk) {
 
 
@@ -184,7 +186,7 @@ var forecast = function () {
 
                         //if (parseFloat(bidForecast) < lastForecastBid /*lastBidPrices[lastBidPrices.length - 1][1]*/) {
                         var promiseResultBid = util.peakPromise(smoothedBid, resource.forecast_count);
-
+                        
                         if (promiseResultBid) {
 
                             if ((parseFloat(resource.ask) + parseFloat(resource.sell_margin) ) < lastBidPrice) {
@@ -245,20 +247,21 @@ var init = function (clnt, chatBot) {
 var buyNow = function (resource, ask) {
 
     var buyPrice = (parseFloat(resource.amount * ask) + 0.05);
-
+    
     client.api.buy_sell('buy', buyPrice.toFixed(2), 'ETH/USD', function (result) {
         if (result.error !== undefined) {
             console.log('ERROR');
             console.log(result);
+          
 
-            bot.sendMessage(22353916, resource.owner + ' kaynağı ile ' + ask + '$ dan ' + resource.amount + ' ETH almaya çalışırken bir sorun oluştu.');
-            bot.sendMessage(22353916, JSON.stringify(result));
+            bot.sendMessage(config.persons[0], resource.owner + ' kaynağı ile ' + ask + '$ dan ' + resource.amount + ' ETH almaya çalışırken bir sorun oluştu.');
+            bot.sendMessage(config.persons[0], JSON.stringify(result));
 
         } else {
             console.log(result);
             console.log('buy', buyPrice.toFixed(2), 'ETH/USD');
 
-            bot.sendMessage(22353916, resource.owner + ' kaynağı ile ' + ask + '$ değerinde ' + resource.amount + ' ETH Satın Aldım ');
+            bot.sendMessage(config.persons[0], resource.owner + ' kaynağı ile ' + ask + '$ değerinde ' + resource.amount + ' ETH Satın Aldım ');
 
 
             db.query("UPDATE resources SET ? WHERE ?", [
@@ -290,13 +293,15 @@ var buyNow = function (resource, ask) {
 
 var sellNow = function (resource, bid) {
 
+
+
     client.api.buy_sell('sell', resource.amount, 'ETH/USD', function (result) {
         if (result.error !== undefined) {
             console.log('ERROR');
             console.log(result);
 
-            bot.sendMessage(22353916, resource.owner + ' kaynağı ile ' + bid + '$ dan ' + resource.amount + ' ETH satmaya çalışırken bir sorun oluştu.');
-            bot.sendMessage(22353916, JSON.stringify(result));
+            bot.sendMessage(config.persons[0], resource.owner + ' kaynağı ile ' + bid + '$ dan ' + resource.amount + ' ETH satmaya çalışırken bir sorun oluştu.');
+            bot.sendMessage(config.persons[0], JSON.stringify(result));
 
         } else {
             /*
@@ -311,7 +316,7 @@ var sellNow = function (resource, bid) {
              */
             console.log('sell', resource.amount, 'ETH/USD');
 
-            bot.sendMessage(22353916, resource.owner + ' kaynağı ile ' + bid + '$ değerinde ' + resource.amount + ' ETH Sattım ');
+            bot.sendMessage(config.persons[0], resource.owner + ' kaynağı ile ' + bid + '$ değerinde ' + resource.amount + ' ETH Sattım ');
 
 
             db.query("UPDATE resources SET ?  WHERE ?", [
@@ -355,7 +360,7 @@ var idle = function (resource) {
     ], function () {
 
         if (resource.idle_count + 1 === 720 * 2 || resource.idle_count + 1 === 720 * 4 || resource.idle_count + 1 === 720 * 8) {
-            bot.sendMessage(22353916, resource.owner + ' kaynağı (ID:#' + resource.id + ') ' + parseInt(((resource.idle_count + 1) * intervalSecond) / 60 / 60) + ' saattir işlem göremiyor.');
+            bot.sendMessage(config.persons[0], resource.owner + ' kaynağı (ID:#' + resource.id + ') ' + parseInt(((resource.idle_count + 1) * intervalSecond) / 60 / 60) + ' saattir işlem göremiyor.');
         }
     });
 }

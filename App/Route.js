@@ -3,6 +3,7 @@
  */
 var TelegramBot = require('node-telegram-bot-api');
 var config = require('../config');
+var botclient = require('./botclient.js')
 
 
 // replace the value below with the Telegram token you receive from @BotFather
@@ -74,7 +75,12 @@ function init() {
             switch(resp[0]) {
                 case 'account':
                     client.api.balance(function(param){
-                        bot.sendMessage(chatId,'Hey! \nYou have ' + param.ETH.available + ' Ethereum and \n'+ param.USD.available  +'$ in your account.  💣\n💵💰💵');
+                       
+
+                        var totalMoney = +param.ETH.available * +botclient.getLastBidPrice() + param.USD.available
+                        console.log(totalMoney,param.ETH.available,botclient.getLastBidPrice())
+
+                        bot.sendMessage(chatId,'Hey! \nYou have ' + param.ETH.available + ' Ethereum and \n'+ param.USD.available  +'$ in your account. If you sell now you gonna have '+ Math.round(totalMoney).toFixed(2)   +' 💣\n💵💰💵');
                     });
 
                     break;
@@ -131,7 +137,7 @@ function init() {
                    break;
 
                 case 'test':
-                    bot.sendMessage(chatid,"TEST TEST")
+                    bot.sendMessage(chatId,"TEST TEST")
                 default:
 
             }
