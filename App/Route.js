@@ -3,7 +3,7 @@
  */
 var TelegramBot = require('node-telegram-bot-api');
 var config = require('../config');
-var test = require('../Tests/ForecastTest.js');
+
 
 // replace the value below with the Telegram token you receive from @BotFather
 const token = config.telegram_key;
@@ -131,7 +131,7 @@ function init() {
                    break;
 
                 case 'test':
-                    test.init(bot);
+                    bot.sendMessage(chatid,"TEST TEST")
                 default:
 
             }
